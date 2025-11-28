@@ -52,6 +52,13 @@ export default function VideoInfo({ videoData, isProcessing }) {
             <span className="info-value">{videoData.resolution || '2560x1440 px'}</span>
           </div>
           
+          {videoData.screenInfo && (
+            <div className={`info-item ${videoData.matchingScreen ? 'success' : 'error'}`}>
+              <span className="info-label">Подходящий экран:</span>
+              <span className="info-value">{videoData.screenInfo}</span>
+            </div>
+          )}
+          
           <div className={`status-badge ${hasErrors ? 'error' : 'success'}`}>
             <span className="status-icon">{hasErrors ? '✗' : '✓'}</span>
             {hasErrors ? 'Проверка не пройдена' : 'Проверка успешно пройдена'}

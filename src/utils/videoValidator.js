@@ -1,9 +1,16 @@
-import requirements from '../data/videoRequirements.json';
+import screenRequirements from '../data/screenRequirements.json';
+
+// Получаем общие настройки из нового формата
+const commonSettings = screenRequirements.commonSettings;
+const screens = screenRequirements.screens;
+
+// Конвертируем максимальный размер из MB в байты
+const maxFileSizeBytes = commonSettings.maxSize * 1024 * 1024;
 
 export const validateVideo = (file) => {
   return new Promise((resolve, reject) => {
     // Проверка размера файла
-    const fileSizeValid = file.size <= requirements.requirements.maxFileSize;
+    const fileSizeValid = file.size <= maxFileSizeBytes;
     
     // Создаём видео элемент для получения метаданных
     const video = document.createElement('video');
@@ -17,13 +24,13 @@ export const validateVideo = (file) => {
       const height = video.videoHeight;
       
       // Проверка длительности
-      const durationValid = requirements.requirements.allowedDurations.includes(duration);
+      const durationValid = commonSettings.allowedDurations.includes(duration);
       
-      // Проверка разрешения (строго заданные значения)
-      const resolutionValid = requirements.requirements.allowedResolutions.length === 0 ? true :
-        requirements.requirements.allowedResolutions.some(
-          res => res.width === width && res.height === height
-        );
+      // Проверка разрешения - ищем подходящий экран
+      const matchingScreen = screens.find(
+        screen => screen.width === width && screen.height === height
+      );
+      const resolutionValid = matchingScreen !== undefined;
       
       const validationResult = {
         isValid: fileSizeValid && durationValid && resolutionValid,
@@ -35,7 +42,8 @@ export const validateVideo = (file) => {
         height,
         resolutionValid,
         fileName: file.name,
-        fileType: file.type
+        fileType: file.type,
+        matchingScreen: matchingScreen || null
       };
       
       resolve(validationResult);
@@ -57,23 +65,30 @@ export const getVideoMetadata = async (file) => {
     const fileExtension = file.name.split('.').pop().toLowerCase();
     
     // Проверяем контейнер
-    const containerValid = requirements.requirements.allowedContainers.includes(fileExtension);
+    const containerValid = fileExtension === commonSettings.container;
+    
+    // Информация о подходящем экране
+    const screenInfo = validation.matchingScreen 
+      ? `${validation.matchingScreen.name}${validation.matchingScreen.nightVersion ? ' (требуется ночная версия)' : ''}`
+      : 'Не найден подходящий экран';
     
     return {
       duration: `${validation.duration} секунд`,
       durationStatus: validation.durationValid ? 'success' : 'error',
       container: `.${fileExtension}`,
       containerStatus: containerValid ? 'success' : 'error',
-      codec: 'H264', // Определение кодека требует более сложной логики
+      codec: commonSettings.codec.toUpperCase(),
       codecStatus: 'success',
-      fps: '25', // FPS требует специальной библиотеки для точного определения
+      fps: commonSettings.fps.toString(),
       fpsStatus: 'success',
       resolution: `${validation.width}x${validation.height} px`,
       resolutionStatus: validation.resolutionValid ? 'success' : 'error',
       fileSize: validation.fileSize,
       fileSizeValid: validation.fileSizeValid,
       containerValid: containerValid,
-      isValid: validation.isValid && containerValid
+      isValid: validation.isValid && containerValid,
+      screenInfo: screenInfo,
+      matchingScreen: validation.matchingScreen
     };
   } catch (error) {
     console.error('Ошибка при получении метаданных:', error);
@@ -89,5 +104,20 @@ export const formatFileSize = (bytes) => {
   return Math.round(bytes / Math.pow(k, i)) + ' ' + sizes[i];
 };
 
-export const getRequirements = () => requirements.requirements;
+// Экспортируем функции для получения требований
+export const getRequirements = () => ({
+  maxFileSize: maxFileSizeBytes,
+  maxFileSizeMB: commonSettings.maxSize,
+  allowedDurations: commonSettings.allowedDurations,
+  allowedFormats: [`video/${commonSettings.container}`],
+  allowedContainers: [commonSettings.container],
+  fps: commonSettings.fps,
+  codec: commonSettings.codec
+});
+
+export const getScreens = () => screens;
+
+export const getScreenByResolution = (width, height) => {
+  return screens.find(screen => screen.width === width && screen.height === height);
+};
 
