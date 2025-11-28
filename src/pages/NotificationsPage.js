@@ -11,6 +11,8 @@ function NotificationsPage() {
   const [notifications, setNotifications] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [notificationToDelete, setNotificationToDelete] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
 
   useEffect(() => {
     // Проверяем авторизацию
@@ -54,6 +56,12 @@ function NotificationsPage() {
       loadNotifications();
       setShowDeleteModal(false);
       setNotificationToDelete(null);
+      
+      // Проверяем, не осталась ли текущая страница пустой
+      const newTotalPages = Math.ceil((notifications.length - 1) / itemsPerPage);
+      if (currentPage > newTotalPages && newTotalPages > 0) {
+        setCurrentPage(newTotalPages);
+      }
     }
   };
 
@@ -98,6 +106,18 @@ function NotificationsPage() {
     { label: 'Уведомления', href: '#', action: 'notifications' },
     { label: 'Выход', href: '#', action: 'logout' }
   ];
+
+  // Вычисляем пагинацию
+  const totalPages = Math.ceil(notifications.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentNotifications = notifications.slice(startIndex, endIndex);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    // Прокручиваем к началу списка уведомлений
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="notifications-page">
@@ -159,7 +179,7 @@ function NotificationsPage() {
               <p>У вас пока нет уведомлений</p>
             </div>
           ) : (
-            notifications.map((notification) => (
+            currentNotifications.map((notification) => (
               <div 
                 key={notification.id} 
                 className={`notification-item ${notification.read ? 'read' : 'unread'} ${notification.type}`}
@@ -200,6 +220,39 @@ function NotificationsPage() {
             ))
           )}
         </div>
+
+        {/* Пагинация */}
+        {totalPages > 1 && (
+          <div className="pagination">
+            <button
+              className="pagination-btn"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              ← Назад
+            </button>
+            
+            <div className="pagination-pages">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  className={`pagination-page ${currentPage === pageNum ? 'active' : ''}`}
+                  onClick={() => handlePageChange(pageNum)}
+                >
+                  {pageNum}
+                </button>
+              ))}
+            </div>
+
+            <button
+              className="pagination-btn"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Вперёд →
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Модальное окно удаления */}
