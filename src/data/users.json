@@ -1,0 +1,23 @@
+{
+  "users": [
+    {
+      "username": "Admin",
+      "password": "admin148",
+      "role": "admin",
+      "firstName": "Администратор",
+      "lastName": "Системы",
+      "middleName": "",
+      "createdAt": 0
+    },
+    {
+      "username": "Eurouser",
+      "password": "user148",
+      "role": "user",
+      "firstName": "Евгений",
+      "lastName": "Пользователь",
+      "middleName": "Иванович",
+      "createdAt": 0
+    }
+  ]
+}
+

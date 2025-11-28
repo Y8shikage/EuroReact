@@ -1,0 +1,11 @@
+{
+  "requirements": {
+    "maxFileSize": 419430400,
+    "maxFileSizeMB": 400,
+    "allowedDurations": [15, 30],
+    "allowedFormats": ["video/mp4"],
+    "allowedContainers": ["mp4"],
+    "allowedResolutions": []
+  }
+}
+
