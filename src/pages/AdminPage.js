@@ -4,6 +4,7 @@ import RippleGrid from '../components/RippleGrid';
 import GooeyNav from '../components/GooeyNav';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
+import RejectModal from '../components/RejectModal';
 import UserCredentialsModal from '../components/UserCredentialsModal';
 import { ReactComponent as EuroLogo } from '../assets/logos/euro-logo.svg';
 import { notifyVideoApproved, notifyVideoRejected, notifyInfo } from '../utils/notificationManager';
@@ -54,6 +55,13 @@ function AdminPage() {
     isOpen: false,
     username: '',
     userFullName: ''
+  });
+
+  // Состояние для модального окна отклонения видео
+  const [rejectModal, setRejectModal] = useState({
+    isOpen: false,
+    video: null,
+    index: -1
   });
 
   useEffect(() => {
@@ -207,8 +215,16 @@ function AdminPage() {
     });
   };
 
-  const handleRejectVideo = (video, index) => {
-    const reason = prompt('Укажите причину отклонения (необязательно):');
+  const handleRejectVideoClick = (video, index) => {
+    setRejectModal({
+      isOpen: true,
+      video: video,
+      index: index
+    });
+  };
+
+  const handleConfirmReject = (reason) => {
+    const { video, index } = rejectModal;
     
     // Отправляем уведомление пользователю
     notifyVideoRejected(video.username, video.fileName, reason || '');
@@ -218,6 +234,14 @@ function AdminPage() {
     setQueue(updatedQueue);
     localStorage.setItem('adminQueue', JSON.stringify(updatedQueue));
 
+    // Закрываем модальное окно отклонения
+    setRejectModal({
+      isOpen: false,
+      video: null,
+      index: -1
+    });
+
+    // Показываем уведомление об успехе
     setModalState({
       isOpen: true,
       title: 'Отклонено',
@@ -499,7 +523,7 @@ function AdminPage() {
                       </button>
                       <button
                         className="btn-reject"
-                        onClick={() => handleRejectVideo(video, index)}
+                        onClick={() => handleRejectVideoClick(video, index)}
                       >
                         ✗ Отклонить
                       </button>
@@ -574,6 +598,14 @@ function AdminPage() {
         message={`Вы уверены, что хотите удалить пользователя "${deleteConfirm.userFullName}" (${deleteConfirm.username})? Это действие нельзя отменить.`}
         confirmText="Удалить"
         cancelText="Отмена"
+      />
+
+      {/* Модальное окно отклонения видео */}
+      <RejectModal
+        isOpen={rejectModal.isOpen}
+        onClose={() => setRejectModal({ isOpen: false, video: null, index: -1 })}
+        onConfirm={handleConfirmReject}
+        videoName={rejectModal.video?.fileName || ''}
       />
     </div>
   );
