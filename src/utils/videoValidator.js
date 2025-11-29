@@ -118,18 +118,30 @@ export const getVideoMetadata = async (file) => {
     let isValidFinal = validation.isValid && containerValid;
     
     if (serverValidation) {
+      console.log('Ответ сервера:', serverValidation);
+      
       // Получаем данные с сервера
-      codec = serverValidation.video_info?.codec || codec;
+      codec = serverValidation.video_info?.codec?.toUpperCase() || codec;
       fps = serverValidation.video_info?.fps?.toString() || fps;
       
       // Проверяем валидность на основе ответа сервера
-      if (serverValidation.is_valid !== undefined) {
-        const codecMatch = serverValidation.video_info?.codec?.toLowerCase() === commonSettings.codec.toLowerCase();
-        const fpsMatch = Math.abs(parseFloat(serverValidation.video_info?.fps || 0) - commonSettings.fps) < 0.1;
-        
+      const serverValid = serverValidation.is_valid === true;
+      
+      if (serverValidation.video_info) {
+        // Проверяем кодек
+        const codecMatch = serverValidation.video_info.codec?.toLowerCase() === commonSettings.codec.toLowerCase();
         codecStatus = codecMatch ? 'success' : 'error';
+        
+        // Проверяем FPS (допуск ±0.5)
+        const actualFps = parseFloat(serverValidation.video_info.fps || 0);
+        const expectedFps = commonSettings.fps;
+        const fpsMatch = Math.abs(actualFps - expectedFps) < 0.5;
         fpsStatus = fpsMatch ? 'success' : 'error';
-        isValidFinal = validation.isValid && containerValid && codecMatch && fpsMatch;
+        
+        // Общая валидность
+        isValidFinal = validation.isValid && containerValid && serverValid;
+        
+        console.log(`Кодек: ${codec} (${codecStatus}), FPS: ${fps} (${fpsStatus}), serverValid: ${serverValid}`);
       }
     }
     
