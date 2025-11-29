@@ -26,7 +26,7 @@ const LoadingFallback = () => (
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/EuroReact">
       <div className="App">
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
