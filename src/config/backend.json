@@ -1,0 +1,11 @@
+{
+  "BACKEND_URL": "https://landless-serpentinely-amari.ngrok-free.dev",
+  "ENDPOINTS": {
+    "VALIDATE_VIDEO": "/api/validate-video",
+    "HEALTH": "/health",
+    "REQUIREMENTS": "/api/requirements"
+  },
+  "TIMEOUT": 30000,
+  "ENABLE_BACKEND_VALIDATION": true
+}
+

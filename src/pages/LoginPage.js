@@ -11,7 +11,24 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
+
+  // Функция для сброса localStorage (полезна для отладки)
+  const resetLocalStorage = () => {
+    console.log('Сброс localStorage');
+    localStorage.removeItem('users');
+    localStorage.removeItem('user');
+    localStorage.setItem('users', JSON.stringify(usersData));
+    setError('');
+    setSuccessMessage('LocalStorage сброшен. Попробуйте войти снова.');
+    
+    // Автоматически скрыть сообщение через 3 секунды
+    setTimeout(() => {
+      setSuccessMessage('');
+    }, 3000);
+  };
 
   // Предзагрузка компонентов в фоне
   useEffect(() => {
@@ -20,7 +37,18 @@ export default function LoginPage() {
     // Инициализируем localStorage с пользователями из JSON, если их там нет
     const savedUsers = localStorage.getItem('users');
     if (!savedUsers) {
+      console.log('Инициализация пользователей в localStorage');
       localStorage.setItem('users', JSON.stringify(usersData));
+    } else {
+      console.log('Пользователи уже есть в localStorage:', JSON.parse(savedUsers));
+    }
+
+    // Проверяем, есть ли уже авторизованный пользователь
+    const currentUser = localStorage.getItem('user');
+    if (currentUser) {
+      console.log('Найден авторизованный пользователь:', JSON.parse(currentUser));
+      // Можно автоматически перенаправить на главную
+      // navigate('/home');
     }
   }, []);
 
@@ -32,16 +60,24 @@ export default function LoginPage() {
     const savedUsers = localStorage.getItem('users');
     const users = savedUsers ? JSON.parse(savedUsers).users : usersData.users;
 
+    console.log('Попытка входа:', { username, password });
+    console.log('Доступные пользователи:', users);
+
+    // Ищем пользователя (сравнение нечувствительно к регистру для username)
     const user = users.find(
-      (u) => u.username === username && u.password === password
+      (u) => u.username.toLowerCase() === username.toLowerCase() && u.password === password
     );
+
+    console.log('Найденный пользователь:', user);
 
     if (user) {
       // Сохраняем данные пользователя в localStorage
       localStorage.setItem('user', JSON.stringify(user));
+      console.log('Пользователь успешно авторизован');
       // Переходим на главную страницу
       navigate('/home');
     } else {
+      console.log('Пользователь не найден или неверный пароль');
       setError('Неверный логин или пароль');
     }
   };
@@ -99,18 +135,53 @@ export default function LoginPage() {
           </div>
 
           <div className="form-group">
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Пароль"
-              required
-              className="liquid-glass-input"
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Пароль"
+                required
+                className="liquid-glass-input"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  padding: '5px'
+                }}
+              >
+                {showPassword ? '👁️' : '👁️‍🗨️'}
+              </button>
+            </div>
           </div>
 
           {error && <div className="error-message">{error}</div>}
+          
+          {successMessage && (
+            <div style={{
+              padding: '12px',
+              marginBottom: '15px',
+              backgroundColor: 'rgba(0, 255, 209, 0.1)',
+              border: '1px solid rgba(0, 255, 209, 0.3)',
+              borderRadius: '8px',
+              color: '#00ffd1',
+              fontSize: '14px',
+              textAlign: 'center'
+            }}>
+              {successMessage}
+            </div>
+          )}
 
           <button type="submit" className="login-button">
             Войти
@@ -118,8 +189,55 @@ export default function LoginPage() {
 
           <div className="test-credentials">
             <p>Тестовые данные:</p>
-            <p>Admin, admin148</p>
-            <p>Eurouser, user148</p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '10px' }}>
+              <button 
+                type="button" 
+                onClick={() => { setUsername('Admin'); setPassword('admin148'); }}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '8px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                Админ
+              </button>
+              <button 
+                type="button" 
+                onClick={() => { setUsername('Eurouser'); setPassword('user148'); }}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '8px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                Пользователь
+              </button>
+            </div>
+            <div style={{ marginTop: '10px' }}>
+              <button 
+                type="button" 
+                onClick={resetLocalStorage}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'rgba(255, 92, 122, 0.2)',
+                  border: '1px solid rgba(255, 92, 122, 0.5)',
+                  borderRadius: '8px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                Сбросить кэш
+              </button>
+            </div>
           </div>
         </form>
       </div>
