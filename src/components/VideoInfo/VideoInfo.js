@@ -12,6 +12,93 @@ export default function VideoInfo({ videoData, isProcessing }) {
     videoData.fileSizeStatus === 'error'
   );
 
+  // Функция для генерации и скачивания отчёта
+  const handleDownloadReport = () => {
+    if (!videoData) return;
+
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const timestamp = new Date().toLocaleString('ru-RU');
+    
+    // Форматируем размер файла
+    const fileSizeMB = (videoData.fileSize / 1024 / 1024).toFixed(2);
+    
+    // Создаём текст отчёта
+    const report = `
+╔════════════════════════════════════════════════════════════╗
+║           ОТЧЁТ О ПРОВЕРКЕ ВИДЕОФАЙЛА                    ║
+╚════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ОБЩАЯ ИНФОРМАЦИЯ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Дата проверки:       ${timestamp}
+Проверил:            ${user.username || 'Неизвестно'}
+Статус проверки:     ${hasErrors ? '❌ НЕ ПРОЙДЕНА' : '✅ УСПЕШНО ПРОЙДЕНА'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ПАРАМЕТРЫ ВИДЕО
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Длина видео:         ${videoData.duration}
+                     [${videoData.durationStatus === 'success' ? '✓' : '✗'} ${videoData.durationStatus === 'success' ? 'Соответствует' : 'Не соответствует'}]
+
+Контейнер:           ${videoData.container}
+                     [${videoData.containerStatus === 'success' ? '✓' : '✗'} ${videoData.containerStatus === 'success' ? 'Соответствует' : 'Не соответствует'}]
+
+Кодек:               ${videoData.codec}
+                     [${videoData.codecStatus === 'success' ? '✓' : '✗'} ${videoData.codecStatus === 'success' ? 'Соответствует' : 'Не соответствует'}]
+
+Частота кадров:      ${videoData.fps} FPS
+                     [${videoData.fpsStatus === 'success' ? '✓' : '✗'} ${videoData.fpsStatus === 'success' ? 'Соответствует' : 'Не соответствует'}]
+
+Разрешение:          ${videoData.resolution}
+                     [${videoData.resolutionStatus === 'success' ? '✓' : '✗'} ${videoData.resolutionStatus === 'success' ? 'Соответствует' : 'Не соответствует'}]
+
+Размер файла:        ${fileSizeMB} МБ
+                     [${videoData.fileSizeValid ? '✓' : '✗'} ${videoData.fileSizeValid ? 'В пределах нормы' : 'Превышает допустимый размер'}]
+
+${videoData.screenInfo ? `Подходящий экран:    ${videoData.screenInfo}
+                     [${videoData.matchingScreen ? '✓' : '✗'} ${videoData.matchingScreen ? 'Найден' : 'Не найден'}]` : ''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ДОПОЛНИТЕЛЬНАЯ ИНФОРМАЦИЯ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${videoData.serverValidation ? `✓ Серверная валидация выполнена успешно` : `⚠ Серверная валидация не выполнена (offline режим)`}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ИТОГОВОЕ ЗАКЛЮЧЕНИЕ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${hasErrors ? 
+`❌ ВИДЕОФАЙЛ НЕ СООТВЕТСТВУЕТ ТРЕБОВАНИЯМ
+
+Файл не может быть использован в текущем виде.
+Необходимо исправить указанные выше параметры.` : 
+`✅ ВИДЕОФАЙЛ СООТВЕТСТВУЕТ ВСЕМ ТРЕБОВАНИЯМ
+
+Файл готов к использованию и может быть отправлен
+на дальнейшую обработку.`}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Сгенерировано системой проверки видеофайлов
+Powered by EuroMedia Validation System
+    `.trim();
+
+    // Создаём blob и скачиваем
+    const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Отчёт_проверки_${new Date().getTime()}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="video-info-container">
       <h2 className="info-title">Данные загруженного файла</h2>
@@ -64,7 +151,11 @@ export default function VideoInfo({ videoData, isProcessing }) {
             {hasErrors ? 'Проверка не пройдена' : 'Проверка успешно пройдена'}
           </div>
           
-          <button className="btn-download">
+          <button 
+            className="btn-download"
+            onClick={handleDownloadReport}
+            title="Скачать подробный отчёт о проверке"
+          >
             Скачать отчёт
           </button>
         </div>

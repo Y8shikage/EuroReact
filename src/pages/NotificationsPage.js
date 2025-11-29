@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import RippleGrid from '../components/RippleGrid';
 import GooeyNav from '../components/GooeyNav';
 import { ReactComponent as EuroLogo } from '../assets/logos/euro-logo.svg';
-import { getUserNotifications, markAsRead, markAllAsRead, deleteNotification } from '../utils/notificationManager';
+import { getUserNotifications, markAsRead, markAllAsRead, deleteNotification, deleteAllReadNotifications } from '../utils/notificationManager';
 import './NotificationsPage.css';
 
 function NotificationsPage() {
@@ -43,6 +43,25 @@ function NotificationsPage() {
     const username = user?.username || 'unknown';
     markAllAsRead(username);
     loadNotifications();
+  };
+
+  const handleDeleteAllRead = () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const username = user?.username || 'unknown';
+    const deletedCount = deleteAllReadNotifications(username);
+    
+    if (deletedCount > 0) {
+      loadNotifications();
+      
+      // Проверяем, не осталась ли текущая страница пустой
+      const remainingNotifications = getUserNotifications(username);
+      const newTotalPages = Math.ceil(remainingNotifications.length / itemsPerPage);
+      if (currentPage > newTotalPages && newTotalPages > 0) {
+        setCurrentPage(newTotalPages);
+      } else if (remainingNotifications.length === 0) {
+        setCurrentPage(1);
+      }
+    }
   };
 
   const handleDeleteClick = (notification) => {
@@ -166,9 +185,16 @@ function NotificationsPage() {
             <h1 className="notifications-title">Уведомления</h1>
           </div>
           {notifications.length > 0 && (
-            <button className="btn-mark-all-read" onClick={handleMarkAllAsRead}>
-              Отметить все как прочитанные
-            </button>
+            <div className="notifications-header-actions">
+              <button className="btn-mark-all-read" onClick={handleMarkAllAsRead}>
+                Прочитать всё
+              </button>
+              {notifications.some(n => n.read) && (
+                <button className="btn-delete-all-read" onClick={handleDeleteAllRead}>
+                  Удалить прочитанные
+                </button>
+              )}
+            </div>
           )}
         </div>
 

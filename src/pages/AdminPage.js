@@ -50,6 +50,10 @@ function AdminPage() {
   // Состояние для поиска пользователей
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Состояние для пагинации
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 4;
+
   // Состояние для модального окна подтверждения удаления
   const [deleteConfirm, setDeleteConfirm] = useState({
     isOpen: false,
@@ -197,6 +201,41 @@ function AdminPage() {
       (user.middleName && user.middleName.toLowerCase().includes(query))
     );
   });
+
+  // Подсчёт пользователей и администраторов
+  const regularUsersCount = filteredUsers.filter(user => user.role === 'user').length;
+  const adminsCount = filteredUsers.filter(user => user.role === 'admin').length;
+
+  // Пагинация
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+  const startIndex = (currentPage - 1) * usersPerPage;
+  const endIndex = startIndex + usersPerPage;
+  const currentUsers = filteredUsers.slice(startIndex, endIndex);
+
+  // Сброс на первую страницу при изменении поиска
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  // Функции для навигации по страницам
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
   const handleApproveVideo = (video, index) => {
     // Отправляем уведомление пользователю
@@ -430,19 +469,19 @@ function AdminPage() {
 
               <div className="users-list">
                 <div className="users-list-header">
-                  <h2>Список пользователей ({filteredUsers.length} / {users.length})</h2>
+                  <h2>Список пользователей ({regularUsersCount} / {adminsCount})</h2>
                   <div className="search-box">
                     <input
                       type="text"
                       placeholder="Поиск по логину, имени или фамилии..."
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => handleSearchChange(e.target.value)}
                       className="search-input"
                     />
                     {searchQuery && (
                       <button
                         className="search-clear"
-                        onClick={() => setSearchQuery('')}
+                        onClick={() => handleSearchChange('')}
                         title="Очистить поиск"
                       >
                         ×
@@ -455,38 +494,73 @@ function AdminPage() {
                     <p>Пользователи не найдены</p>
                   </div>
                 ) : (
-                  filteredUsers.map((user, index) => (
-                  <div key={index} className="user-item">
-                    <div className="user-info">
-                      <h3>{user.lastName} {user.firstName} {user.middleName}</h3>
-                      <p>Логин: <strong>{user.username}</strong></p>
-                      <p className="password-field">
-                        Пароль: 
-                        <strong className="password-value">
-                          {visiblePasswords[user.username] ? user.password : '••••••••'}
-                        </strong>
+                  <>
+                    {currentUsers.map((user, index) => (
+                      <div key={index} className="user-item">
+                        <div className="user-info">
+                          <h3>{user.lastName} {user.firstName} {user.middleName}</h3>
+                          <p>Логин: <strong>{user.username}</strong></p>
+                          <p className="password-field">
+                            Пароль: 
+                            <strong className="password-value">
+                              {visiblePasswords[user.username] ? user.password : '••••••••'}
+                            </strong>
+                            <button
+                              className="btn-toggle-password-inline"
+                              onClick={() => setVisiblePasswords({
+                                ...visiblePasswords,
+                                [user.username]: !visiblePasswords[user.username]
+                              })}
+                              title={visiblePasswords[user.username] ? 'Скрыть пароль' : 'Показать пароль'}
+                            >
+                              {visiblePasswords[user.username] ? '👁️' : '👁️‍🗨️'}
+                            </button>
+                          </p>
+                          <p>Роль: <span className={`role-badge ${user.role}`}>{user.role === 'admin' ? 'Администратор' : 'Пользователь'}</span></p>
+                        </div>
                         <button
-                          className="btn-toggle-password-inline"
-                          onClick={() => setVisiblePasswords({
-                            ...visiblePasswords,
-                            [user.username]: !visiblePasswords[user.username]
-                          })}
-                          title={visiblePasswords[user.username] ? 'Скрыть пароль' : 'Показать пароль'}
+                          className="btn-delete-user"
+                          onClick={() => handleDeleteUserClick(user)}
+                          disabled={user.username === 'Admin'}
                         >
-                          {visiblePasswords[user.username] ? '👁️' : '👁️‍🗨️'}
+                          Удалить
                         </button>
-                      </p>
-                      <p>Роль: <span className={`role-badge ${user.role}`}>{user.role === 'admin' ? 'Администратор' : 'Пользователь'}</span></p>
-                    </div>
-                    <button
-                      className="btn-delete-user"
-                      onClick={() => handleDeleteUserClick(user)}
-                      disabled={user.username === 'Admin'}
-                    >
-                      Удалить
-                    </button>
-                  </div>
-                  ))
+                      </div>
+                    ))}
+
+                    {/* Пагинация */}
+                    {totalPages > 1 && (
+                      <div className="pagination">
+                        <button
+                          className="pagination-btn"
+                          onClick={goToPrevPage}
+                          disabled={currentPage === 1}
+                        >
+                          ← Назад
+                        </button>
+                        
+                        <div className="pagination-pages">
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                            <button
+                              key={page}
+                              className={`pagination-page ${page === currentPage ? 'active' : ''}`}
+                              onClick={() => goToPage(page)}
+                            >
+                              {page}
+                            </button>
+                          ))}
+                        </div>
+
+                        <button
+                          className="pagination-btn"
+                          onClick={goToNextPage}
+                          disabled={currentPage === totalPages}
+                        >
+                          Вперёд →
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>

@@ -109,6 +109,28 @@ export const deleteNotification = (notificationId) => {
 };
 
 /**
+ * Удаляет все прочитанные уведомления пользователя
+ * @param {string} username - Имя пользователя
+ * @returns {number} Количество удалённых уведомлений
+ */
+export const deleteAllReadNotifications = (username) => {
+  const savedNotifications = localStorage.getItem('notifications');
+  const notifications = savedNotifications ? JSON.parse(savedNotifications) : [];
+
+  // Считаем сколько прочитанных уведомлений будет удалено
+  const readCount = notifications.filter(n => n.username === username && n.read).length;
+
+  // Удаляем все прочитанные уведомления пользователя
+  const updatedNotifications = notifications.filter(n => {
+    // Оставляем уведомления других пользователей и непрочитанные уведомления текущего пользователя
+    return n.username !== username || !n.read;
+  });
+
+  localStorage.setItem('notifications', JSON.stringify(updatedNotifications));
+  return readCount;
+};
+
+/**
  * Очищает все уведомления пользователя
  * @param {string} username - Имя пользователя
  */
