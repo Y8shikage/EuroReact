@@ -12,9 +12,10 @@ import './AdminPage.css';
 
 function AdminPage() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('users'); // users, queue, notifications
+  const [activeTab, setActiveTab] = useState('users'); // users, queue, notifications, approved
   const [users, setUsers] = useState([]);
   const [queue, setQueue] = useState([]);
+  const [approvedVideos, setApprovedVideos] = useState([]);
   const [modalState, setModalState] = useState({
     isOpen: false,
     title: '',
@@ -54,6 +55,10 @@ function AdminPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 4;
 
+  // Состояние для пагинации одобренных видео
+  const [approvedCurrentPage, setApprovedCurrentPage] = useState(1);
+  const approvedVideosPerPage = 4;
+
   // Состояние для модального окна подтверждения удаления
   const [deleteConfirm, setDeleteConfirm] = useState({
     isOpen: false,
@@ -84,6 +89,7 @@ function AdminPage() {
 
     loadUsers();
     loadQueue();
+    loadApprovedVideos();
   }, [navigate]);
 
   const loadUsers = () => {
@@ -98,6 +104,12 @@ function AdminPage() {
     const savedQueue = localStorage.getItem('adminQueue');
     const queueData = savedQueue ? JSON.parse(savedQueue) : [];
     setQueue(queueData);
+  };
+
+  const loadApprovedVideos = () => {
+    const savedApproved = localStorage.getItem('approvedVideos');
+    const approvedData = savedApproved ? JSON.parse(savedApproved) : [];
+    setApprovedVideos(approvedData);
   };
 
   const generateRandomString = (length) => {
@@ -241,6 +253,15 @@ function AdminPage() {
     // Отправляем уведомление пользователю
     notifyVideoApproved(video.username, video.fileName);
 
+    // Добавляем в список одобренных видео
+    const approvedVideo = {
+      ...video,
+      approvedAt: Date.now()
+    };
+    const updatedApproved = [approvedVideo, ...approvedVideos];
+    setApprovedVideos(updatedApproved);
+    localStorage.setItem('approvedVideos', JSON.stringify(updatedApproved));
+
     // Удаляем из очереди
     const updatedQueue = queue.filter((_, i) => i !== index);
     setQueue(updatedQueue);
@@ -286,6 +307,24 @@ function AdminPage() {
       title: 'Отклонено',
       message: `Видео "${video.fileName}" отклонено. Пользователь получит уведомление.`,
       type: 'info'
+    });
+  };
+
+  const handleClearAllApproved = () => {
+    if (approvedVideos.length === 0) return;
+
+    // Очищаем список одобренных видео
+    setApprovedVideos([]);
+    localStorage.setItem('approvedVideos', JSON.stringify([]));
+    
+    // Сбрасываем на первую страницу
+    setApprovedCurrentPage(1);
+
+    setModalState({
+      isOpen: true,
+      title: 'Очищено',
+      message: 'Все одобренные видео удалены из списка.',
+      type: 'success'
     });
   };
 
@@ -419,6 +458,12 @@ function AdminPage() {
             onClick={() => setActiveTab('queue')}
           >
             Очередь ({queue.length})
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'approved' ? 'active' : ''}`}
+            onClick={() => setActiveTab('approved')}
+          >
+            Одобренные ({approvedVideos.length})
           </button>
           <button
             className={`tab-btn ${activeTab === 'notifications' ? 'active' : ''}`}
@@ -604,6 +649,99 @@ function AdminPage() {
                     </div>
                   </div>
                 ))
+              )}
+            </div>
+          )}
+
+          {/* Вкладка: Одобренные видео */}
+          {activeTab === 'approved' && (
+            <div className="approved-tab">
+              <h2>Одобренные видео ({approvedVideos.length})</h2>
+              {approvedVideos.length === 0 ? (
+                <div className="empty-approved">
+                  <p>Нет одобренных видео</p>
+                </div>
+              ) : (
+                <>
+                  {(() => {
+                    // Пагинация для одобренных видео
+                    const totalPages = Math.ceil(approvedVideos.length / approvedVideosPerPage);
+                    const startIndex = (approvedCurrentPage - 1) * approvedVideosPerPage;
+                    const endIndex = startIndex + approvedVideosPerPage;
+                    const currentApprovedVideos = approvedVideos.slice(startIndex, endIndex);
+
+                    return (
+                      <>
+                        {currentApprovedVideos.map((video, index) => (
+                          <div key={startIndex + index} className="approved-item">
+                            {video.thumbnail && (
+                              <div className="approved-thumbnail">
+                                <img src={video.thumbnail} alt={video.fileName} />
+                              </div>
+                            )}
+                            <div className="approved-info">
+                              <h3>{video.fileName}</h3>
+                              <p>Пользователь: <strong>{video.username}</strong></p>
+                              <p>Загружено: {new Date(video.timestamp).toLocaleString('ru-RU')}</p>
+                              <p>Одобрено: {new Date(video.approvedAt).toLocaleString('ru-RU')}</p>
+                              <p>Параметры: {video.resolution} • {video.duration} • {video.fileSize}</p>
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Пагинация для одобренных видео */}
+                        <div className="pagination">
+                          {totalPages > 1 && (
+                            <>
+                              <button
+                                className="pagination-btn"
+                                onClick={() => {
+                                  if (approvedCurrentPage > 1) {
+                                    setApprovedCurrentPage(approvedCurrentPage - 1);
+                                  }
+                                }}
+                                disabled={approvedCurrentPage === 1}
+                              >
+                                ← Назад
+                              </button>
+                              
+                              <div className="pagination-pages">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                  <button
+                                    key={page}
+                                    className={`pagination-page ${page === approvedCurrentPage ? 'active' : ''}`}
+                                    onClick={() => setApprovedCurrentPage(page)}
+                                  >
+                                    {page}
+                                  </button>
+                                ))}
+                              </div>
+
+                              <button
+                                className="pagination-btn"
+                                onClick={() => {
+                                  if (approvedCurrentPage < totalPages) {
+                                    setApprovedCurrentPage(approvedCurrentPage + 1);
+                                  }
+                                }}
+                                disabled={approvedCurrentPage === totalPages}
+                              >
+                                Вперёд →
+                              </button>
+                            </>
+                          )}
+
+                          <button
+                            className="btn-clear-approved"
+                            onClick={handleClearAllApproved}
+                          >
+                            Очистить всё
+                          </button>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </>
               )}
             </div>
           )}

@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/EuroReact/static/css/main.f0c89e84.css",
-    "main.js": "/EuroReact/static/js/main.aa8e5156.js",
+    "main.js": "/EuroReact/static/js/main.8192be5e.js",
     "static/css/216.f08f6065.chunk.css": "/EuroReact/static/css/216.f08f6065.chunk.css",
     "static/js/216.dd13be1e.chunk.js": "/EuroReact/static/js/216.dd13be1e.chunk.js",
     "static/css/121.270ac5de.chunk.css": "/EuroReact/static/css/121.270ac5de.chunk.css",
@@ -28,7 +28,7 @@
     "static/js/861.9049f10e.chunk.js": "/EuroReact/static/js/861.9049f10e.chunk.js",
     "static/js/919.69c3beb8.chunk.js": "/EuroReact/static/js/919.69c3beb8.chunk.js",
     "static/js/355.fab2085e.chunk.js": "/EuroReact/static/js/355.fab2085e.chunk.js",
-    "static/js/991.91e15baf.chunk.js": "/EuroReact/static/js/991.91e15baf.chunk.js",
+    "static/js/991.a4550e08.chunk.js": "/EuroReact/static/js/991.a4550e08.chunk.js",
     "static/js/125.5e7f980e.chunk.js": "/EuroReact/static/js/125.5e7f980e.chunk.js",
     "static/js/735.8dffbc64.chunk.js": "/EuroReact/static/js/735.8dffbc64.chunk.js",
     "static/css/727.ffa15f4b.chunk.css": "/EuroReact/static/css/727.ffa15f4b.chunk.css",
@@ -36,7 +36,7 @@
     "index.html": "/EuroReact/index.html",
     "static/media/DropFileIcon.svg": "/EuroReact/static/media/DropFileIcon.0143e5766fdf113536feddbf3ca20079.svg",
     "main.f0c89e84.css.map": "/EuroReact/static/css/main.f0c89e84.css.map",
-    "main.aa8e5156.js.map": "/EuroReact/static/js/main.aa8e5156.js.map",
+    "main.8192be5e.js.map": "/EuroReact/static/js/main.8192be5e.js.map",
     "216.f08f6065.chunk.css.map": "/EuroReact/static/css/216.f08f6065.chunk.css.map",
     "216.dd13be1e.chunk.js.map": "/EuroReact/static/js/216.dd13be1e.chunk.js.map",
     "121.270ac5de.chunk.css.map": "/EuroReact/static/css/121.270ac5de.chunk.css.map",
@@ -63,13 +63,13 @@
     "861.9049f10e.chunk.js.map": "/EuroReact/static/js/861.9049f10e.chunk.js.map",
     "919.69c3beb8.chunk.js.map": "/EuroReact/static/js/919.69c3beb8.chunk.js.map",
     "355.fab2085e.chunk.js.map": "/EuroReact/static/js/355.fab2085e.chunk.js.map",
-    "991.91e15baf.chunk.js.map": "/EuroReact/static/js/991.91e15baf.chunk.js.map",
+    "991.a4550e08.chunk.js.map": "/EuroReact/static/js/991.a4550e08.chunk.js.map",
     "125.5e7f980e.chunk.js.map": "/EuroReact/static/js/125.5e7f980e.chunk.js.map",
     "735.8dffbc64.chunk.js.map": "/EuroReact/static/js/735.8dffbc64.chunk.js.map",
     "727.ffa15f4b.chunk.css.map": "/EuroReact/static/css/727.ffa15f4b.chunk.css.map"
   },
   "entrypoints": [
     "static/css/main.f0c89e84.css",
-    "static/js/main.aa8e5156.js"
+    "static/js/main.8192be5e.js"
   ]
 }

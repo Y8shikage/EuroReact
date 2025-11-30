@@ -13,8 +13,8 @@ root.render(
   </React.StrictMode>
 );
 
-// Регистрация Service Worker для кэширования
-if ('serviceWorker' in navigator) {
+// Регистрация Service Worker для кэширования (только для локальной разработки)
+if ('serviceWorker' in navigator && process.env.NODE_ENV === 'development') {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register(process.env.PUBLIC_URL + '/service-worker.js')
