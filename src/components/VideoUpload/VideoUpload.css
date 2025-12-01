@@ -184,6 +184,30 @@
   transform: translateY(0);
 }
 
+.btn-guide {
+  width: 100%;
+  padding: 16px 20px;
+  margin-top: 20px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-guide:hover {
+  background: rgba(0, 0, 0, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn-guide:active {
+  transform: translateY(0);
+}
+
 .folder-container {
   margin-top: 100px;
   display: flex;

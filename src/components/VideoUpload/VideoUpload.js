@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ReactComponent as DropFileIcon } from '../../assets/icons/DropFileIcon.svg';
 import { getRequirements } from '../../utils/videoValidator';
 import Folder from '../Folder';
+import screenRequirements from '../../data/screenRequirements.json';
 import './VideoUpload.css';
 
 export default function VideoUpload({ onFileSelect, selectedFile, onCancel, onSubmit, isValid }) {
@@ -87,6 +88,92 @@ export default function VideoUpload({ onFileSelect, selectedFile, onCancel, onSu
     return Math.round(bytes / Math.pow(k, i)) + ' ' + sizes[i];
   };
 
+  const handleDownloadGuide = () => {
+    const { commonSettings, screens } = screenRequirements;
+    
+    // Создаём текст справки
+    const guide = `
+╔════════════════════════════════════════════════════════════╗
+║           СПРАВКА ПО ТРЕБОВАНИЯМ К ВИДЕО                 ║
+╚════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ОБЩИЕ ТРЕБОВАНИЯ К ВИДЕОФАЙЛАМ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📌 КОНТЕЙНЕР:           .${commonSettings.container.toUpperCase()}
+📌 КОДЕК:               ${commonSettings.codec.toUpperCase()}
+📌 ЧАСТОТА КАДРОВ:      ${commonSettings.fps} FPS
+📌 МАКСИМАЛЬНЫЙ РАЗМЕР: ${commonSettings.maxSize} МБ
+📌 ДЛИТЕЛЬНОСТЬ:        ${commonSettings.allowedDurations.join(' или ')} секунд
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ДОСТУПНЫЕ ЭКРАНЫ И ИХ РАЗРЕШЕНИЯ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${screens.map((screen, index) => {
+  const nightInfo = screen.nightVersion ? ' (есть ночная версия)' : '';
+  return `${(index + 1).toString().padStart(2, '0')}. ${screen.name}${nightInfo}
+    └─ Разрешение: ${screen.width}x${screen.height} px`;
+}).join('\n\n')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ВАЖНАЯ ИНФОРМАЦИЯ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠ ВНИМАНИЕ:
+• Все параметры видео должны СТРОГО соответствовать указанным
+  требованиям
+• Разрешение видео должно точно совпадать с разрешением одного
+  из доступных экранов
+• Файлы, не соответствующие требованиям, будут отклонены
+  администратором
+
+📋 РЕКОМЕНДАЦИИ:
+• Используйте профессиональные видеоредакторы для экспорта
+  (Adobe Premiere, DaVinci Resolve, Final Cut Pro и др.)
+• Проверяйте параметры видео перед загрузкой
+• Называйте файлы понятными именами для упрощения
+  идентификации
+• Убедитесь, что видео соответствует длительности 15 или 30
+  секунд
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  НАСТРОЙКИ ЭКСПОРТА (ПРИМЕР ДЛЯ ADOBE PREMIERE PRO)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Формат: H.264
+2. Предустановка: Высокое качество 1080p HD (или выше)
+3. Настройки видео:
+   - Частота кадров: ${commonSettings.fps}
+   - Разрешение: выберите из списка экранов выше
+   - Профиль: High
+   - Уровень: 4.2 или выше
+4. Настройки битрейта:
+   - Режим кодирования: VBR, 2 прохода
+   - Целевой битрейт: 10-20 Мбит/с
+   - Максимальный битрейт: 25 Мбит/с
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Дата создания справки: ${new Date().toLocaleString('ru-RU')}
+Версия: 1.0
+
+Powered by EuroMedia Validation System
+    `.trim();
+
+    // Создаём blob и скачиваем
+    const blob = new Blob([guide], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Справка_требования_к_видео.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="video-upload-container">
       <h2 className="upload-title">Загрузить</h2>
@@ -116,6 +203,17 @@ export default function VideoUpload({ onFileSelect, selectedFile, onCancel, onSu
             />
           </div>
           {error && <div className="error-message">{error}</div>}
+          
+          <button 
+            className="btn-guide"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDownloadGuide();
+            }}
+            title="Скачать справку с требованиями к видео"
+          >
+            Справка
+          </button>
         </>
       ) : (
         <div className="file-selected">
